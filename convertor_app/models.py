@@ -9,13 +9,13 @@ def validate_age(value):
         raise ValidationError('Age should be above 18')
     
 def valid_email(value):
-    if value and value.notendswith('.com','.de'):
+    if value and value.endswith('.xed'):
         raise ValidationError("Email address should end with '.com' or '.de'")
     
 class User(models.Model):
-    username = models.CharField(max_length=50,unique=True)
-    email = models.EmailField(unique=True,validators=[valid_email,validators.EmailValidator(message='enter a valid email')])
-    age = models.PositiveIntegerField(null=True,validators=[validate_age])
+    username = models.CharField(max_length=50,unique=True,default='old_user1')
+    email = models.EmailField(unique=True,default='old_user1@here.de',validators=[valid_email,validators.EmailValidator(message='enter a valid email')])
+    age = models.PositiveIntegerField(null=True,default='25',validators=[validate_age])
     joining_time = models.DateTimeField(default=timezone.now)
 
     def clean(self) :
@@ -28,11 +28,28 @@ class User(models.Model):
     def __str__(self) :
         return self.username
 
+class Meta:
+        ordering = ['username']
+        constraints = [models.UniqueConstraint(fields=['username','email'],name='unique email/username')]
+        db_table = 'users table'
+        verbose_name = 'users for the app'
 
 class Dailyupdate(models.Model):
-    date = models.DateTimeField()
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    Date = models.DateTimeField(default=timezone.now)
     basecurr = models.CharField(max_length=20)
     targetcurr = models.CharField(max_length=20)
-    rates = models.DecimalField(max_digits=6, decimal_places=3)
+    rates = models.DecimalField(max_digits=6, decimal_places=4)
+
+    def save(self,*args,**kwargs):#
+        self.full_clean()
+        return super().save(*args,**kwargs)
+    
+    def __str__(self) :
+        return self.user.username
+    
+    class Meta :
+        ordering =['Date']
+        verbose_name = 'user conversions'
 
     

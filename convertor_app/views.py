@@ -2,20 +2,18 @@ from django.shortcuts import render,get_object_or_404
 from rest_framework import generics,permissions
 from .models import Dailyupdate
 from .serializers import DailyupdateSerializer
-import requests,os,json
+import requests,os
 from dotenv import load_dotenv
-from django.http import HttpResponse
 from datetime import datetime
+from django.views.generic import TemplateView
+from .models import Dailyupdate,User
+#from .permissions import IsAdminOrReadOnly
+#from rest_framework.authentication import TokenAuthentication
 
-# Create your views here.
 
 
-class DetailDailyupdate(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Dailyupdate.objects.all()
-    serializer_class = DailyupdateSerializer
-
-def home(request):
-    return HttpResponse('<h1>Welcome to Daily updates</h1>')
+class HomePageView(TemplateView):
+    template_name = 'convertor_app/homepage.html'
 
 
 def external_api_view(request):
@@ -32,8 +30,9 @@ def external_api_view(request):
         #print (data)
         date_str = data['time_last_update_utc']
         formatted_date = datetime.strptime(date_str, '%a, %d %b %Y %H:%M:%S %z').strftime('%Y-%m-%d %H:%M:%S')
-
+        user= User.objects.create()
         datas=Dailyupdate.objects.create(
+                    user = user,
                     date=formatted_date,
                     basecurr=data['base_code'],
                     targetcurr=data['target_code'],
@@ -47,3 +46,17 @@ def external_api_view(request):
 class allDailyList(generics.ListCreateAPIView):
     queryset = Dailyupdate.objects.all()
     serializer_class = DailyupdateSerializer
+    #authentication_classes = [TokenAuthentication]
+    #permission_classes = [IsAdminOrReadOnly,permissions.IsAuthenticatedOrReadOnly]
+    
+
+
+
+
+
+class DetailDailyupdate(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Dailyupdate.objects.all()
+    serializer_class = DailyupdateSerializer
+    #authentication_classes = [TokenAuthentication]
+    #permission_classes = [IsAdminOrReadOnly,permissions.IsAuthenticatedOrReadOnly]
+    
