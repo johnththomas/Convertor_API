@@ -9,7 +9,7 @@ from django.views.generic import TemplateView
 from .models import Dailyupdate,User
 #from .permissions import IsAdminOrReadOnly
 #from rest_framework.authentication import TokenAuthentication
-
+from rest_framework.exceptions import ValidationError
 
 
 class HomePageView(TemplateView):
@@ -30,9 +30,9 @@ def external_api_view(request):
         #print (data)
         date_str = data['time_last_update_utc']
         formatted_date = datetime.strptime(date_str, '%a, %d %b %Y %H:%M:%S %z').strftime('%Y-%m-%d %H:%M:%S')
-        user= User.objects.create()
+        user1= User.objects.get(username= 'old_user')
         datas=Dailyupdate.objects.create(
-                    user = user,
+                    user = user1,
                     date=formatted_date,
                     basecurr=data['base_code'],
                     targetcurr=data['target_code'],
@@ -49,7 +49,11 @@ class allDailyList(generics.ListCreateAPIView):
     #authentication_classes = [TokenAuthentication]
     #permission_classes = [IsAdminOrReadOnly,permissions.IsAuthenticatedOrReadOnly]
     
-
+    def perform_create(self, serializer):
+        try :
+            serializer.save()           
+        except ValidationError as e:
+            raise ValidationError(detail=e.detail)
 
 
 
@@ -60,3 +64,11 @@ class DetailDailyupdate(generics.RetrieveUpdateDestroyAPIView):
     #authentication_classes = [TokenAuthentication]
     #permission_classes = [IsAdminOrReadOnly,permissions.IsAuthenticatedOrReadOnly]
     
+    def perform_update(self, serializer):
+        try:
+            serializer.save()
+        except ValidationError as e:
+            raise ValidationError(detail=e.detail)
+        
+    def perform_destroy(self, instance):
+        instance.delete()

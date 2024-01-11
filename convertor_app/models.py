@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core import validators
@@ -13,14 +14,14 @@ def valid_email(value):
         raise ValidationError("Email address should end with '.com' or '.de'")
     
 class User(models.Model):
-    username = models.CharField(max_length=50,unique=True,default='old_user1')
-    email = models.EmailField(unique=True,default='old_user1@here.de',validators=[valid_email,validators.EmailValidator(message='enter a valid email')])
+    username = models.CharField(max_length=50,unique=True,null=True,)
+    email = models.EmailField(unique=True,null=True,validators=[valid_email,validators.EmailValidator(message='enter a valid email')])
     age = models.PositiveIntegerField(null=True,default='25',validators=[validate_age])
-    joining_time = models.DateTimeField(default=timezone.now)
+    joining_time = models.DateTimeField(default=datetime.now)
 
     def clean(self) :
         if not self.joining_time:
-            self.joining_time = timezone.now()
+            self.joining_time = datetime.now()
             
     def save(self,*args,**kwargs):
         self.full_clean()
@@ -36,7 +37,7 @@ class Meta:
 
 class Dailyupdate(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
-    Date = models.DateTimeField(default=timezone.now)
+    date = models.DateTimeField(default=timezone.now)
     basecurr = models.CharField(max_length=20)
     targetcurr = models.CharField(max_length=20)
     rates = models.DecimalField(max_digits=6, decimal_places=4)
@@ -49,7 +50,7 @@ class Dailyupdate(models.Model):
         return self.user.username
     
     class Meta :
-        ordering =['Date']
+        ordering =['date']
         verbose_name = 'user conversions'
 
     
