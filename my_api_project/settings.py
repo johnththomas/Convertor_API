@@ -40,7 +40,20 @@ INSTALLED_APPS = [
     'rest_framework',
     'convertor_app',
     'rest_framework.authtoken',
+    'drf_yasg',
+    'django_filters',
 ]
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+
+}
 
 REST_FRAMEWORK = {
    'DEFAULT_AUTHENTICATION_CLASSES': [
